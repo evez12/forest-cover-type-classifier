@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Forest Cover Type Classifier</title>
+  <meta name="description" content="Predict the forest cover type of a 30 m cell from cartographic features with a PyTorch model." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 3 6 17h5l-6 9h22l-6-9h5z' fill='%23008300'/%3E%3Crect x='14' y='26' width='4' height='4' fill='%2352514e'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar__inner">
+      <div class="brand">
+        <svg class="brand__icon" viewBox="0 0 32 32" aria-hidden="true">
+          <path d="M16 3 6 17h5l-6 9h22l-6-9h5z" />
+          <rect x="14" y="26" width="4" height="4" />
+        </svg>
+        <div>
+          <h1 class="brand__title">Forest Cover Type Classifier</h1>
+          <p class="brand__subtitle">PyTorch MLP · UCI Covertype · 54 features → 7 classes</p>
+        </div>
+      </div>
+      <div class="topbar__actions">
+        <span id="status-pill" class="pill pill--pending" role="status">
+          <span class="pill__dot" aria-hidden="true"></span>
+          <span id="status-text">Connecting…</span>
+        </span>
+        <a id="docs-link" class="btn btn--ghost btn--sm" href="/docs" target="_blank" rel="noopener">API docs</a>
+        <button id="theme-toggle" class="btn btn--ghost btn--icon" type="button" aria-label="Toggle color theme">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z" /></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- ================= Input form ================= -->
+    <section class="card card--form" aria-labelledby="form-title">
+      <div class="card__head">
+        <div>
+          <h2 id="form-title" class="card__title">Terrain features</h2>
+          <p class="card__hint">Defaults are the training-set medians. Sliders span the training range.</p>
+        </div>
+        <div class="toolbar">
+          <label class="switch" title="Re-run the prediction whenever an input changes">
+            <input id="live-toggle" type="checkbox" />
+            <span class="switch__track" aria-hidden="true"><span class="switch__thumb"></span></span>
+            <span class="switch__label">Live</span>
+          </label>
+          <button id="reset-btn" class="btn btn--ghost btn--sm" type="button">Reset</button>
+        </div>
+      </div>
+
+      <div class="samples" id="samples" hidden>
+        <span class="samples__label">Load a test-set sample:</span>
+        <div class="samples__list" id="samples-list"></div>
+      </div>
+
+      <form id="predict-form" novalidate>
+        <div id="numeric-groups"></div>
+
+        <fieldset class="group">
+          <legend class="group__title">Wilderness area</legend>
+          <div class="radio-cards" id="wilderness-options" role="radiogroup"></div>
+        </fieldset>
+
+        <fieldset class="group">
+          <legend class="group__title">Soil type</legend>
+          <div class="field">
+            <label class="field__label" for="soil-select">USFS ELU code · description</label>
+            <select id="soil-select" class="select"></select>
+          </div>
+        </fieldset>
+
+        <div class="form-actions">
+          <button id="predict-btn" class="btn btn--primary btn--lg" type="submit">
+            <span class="spinner" aria-hidden="true"></span>
+            <span class="btn__text">Predict cover type</span>
+          </button>
+          <p id="form-error" class="form-error" role="alert" hidden></p>
+        </div>
+      </form>
+    </section>
+
+    <!-- ================= Result ================= -->
+    <aside class="card card--result" aria-labelledby="result-title" aria-live="polite">
+      <div class="card__head">
+        <h2 id="result-title" class="card__title">Prediction</h2>
+        <span id="latency" class="muted small"></span>
+      </div>
+
+      <div id="result-empty" class="empty">
+        <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 5 11 24h7l-9 13h30l-9-13h7z" /><rect x="21" y="37" width="6" height="6" /></svg>
+        <p>Adjust the features and press <strong>Predict</strong>.</p>
+      </div>
+
+      <div id="result" hidden>
+        <div class="hero">
+          <span id="hero-swatch" class="hero__swatch" aria-hidden="true"></span>
+          <div class="hero__text">
+            <p class="hero__label">Predicted cover type</p>
+            <p id="hero-class" class="hero__class">—</p>
+            <p id="hero-meta" class="hero__meta muted"></p>
+          </div>
+          <div class="hero__conf">
+            <p id="hero-conf" class="hero__value">—</p>
+            <p class="hero__label">confidence</p>
+          </div>
+        </div>
+        <div class="meter" aria-hidden="true"><div id="hero-meter" class="meter__fill"></div></div>
+
+        <h3 class="section-title">Class probabilities</h3>
+        <ul id="prob-list" class="prob-list"></ul>
+
+        <ul id="warnings" class="warnings" hidden></ul>
+
+        <details class="raw">
+          <summary>Request / response JSON</summary>
+          <div class="raw__grid">
+            <div><p class="raw__title">Request</p><pre id="raw-request"></pre></div>
+            <div><p class="raw__title">Response</p><pre id="raw-response"></pre></div>
+          </div>
+        </details>
+      </div>
+
+      <div class="model-stats" id="model-stats" hidden>
+        <h3 class="section-title">Model · test split</h3>
+        <dl class="stats" id="stats-list"></dl>
+      </div>
+    </aside>
+  </main>
+
+  <div id="tooltip" class="tooltip" role="tooltip" hidden></div>
+
+  <footer class="footer">
+    Data: Blackard &amp; Dean, UCI Covertype (Roosevelt National Forest, Colorado). Predictions are model estimates.
+  </footer>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
