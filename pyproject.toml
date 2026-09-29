@@ -1,0 +1,21 @@
+[project]
+name = "forest-cover-type-classifier"
+version = "1.0.0"
+description = "End-to-end forest cover type classification: PyTorch MLP, FastAPI inference service and web UI."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "Avaz Huseynov" }]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501"]  # long Pydantic Field(...) declarations are kept on one line

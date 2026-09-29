@@ -1,0 +1,23 @@
+# PyTorch with CUDA 12.8 support
+--extra-index-url https://download.pytorch.org/whl/cu128
+torch==2.11.0+cu128
+torchmetrics==1.9.0
+
+# Data loading & preprocessing
+# NOTE: keep scikit-learn / joblib identical between training and serving —
+# preprocessor.joblib is a pickled ColumnTransformer.
+numpy==2.5.3
+pandas==3.0.6
+scikit-learn==1.9.1
+joblib==1.6.0
+
+# Web API
+fastapi==0.141.1
+uvicorn[standard]==0.54.0
+pydantic==2.13.5
+
+# Notebook runtime & plotting (only needed for the .ipynb)
+matplotlib==3.11.2
+seaborn==0.13.2
+jupyter
+ipykernel

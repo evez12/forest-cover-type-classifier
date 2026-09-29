@@ -1,0 +1,77 @@
+# ---------------------------------------------------------------------------
+# Python
+# ---------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+.eggs/
+build/
+dist/
+pip-wheel-metadata/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+.conda/
+
+# Testing / coverage / type checking / linting
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+.tox/
+.nox/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# ---------------------------------------------------------------------------
+# Data & experiment outputs
+# ---------------------------------------------------------------------------
+# The Covertype dataset is downloaded at runtime by sklearn (~/scikit_learn_data).
+data/
+*.csv
+*.parquet
+covtype.data*
+
+# Experiment tracking / checkpoints (the exported inference artifacts in
+# ./artifacts ARE versioned so the API runs right after cloning)
+runs/
+mlruns/
+wandb/
+lightning_logs/
+checkpoints/
+*.ckpt
+
+# ---------------------------------------------------------------------------
+# Secrets & environment
+# ---------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ---------------------------------------------------------------------------
+# IDE / OS
+# ---------------------------------------------------------------------------
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---------------------------------------------------------------------------
+# Local scratch (not part of the project)
+# ---------------------------------------------------------------------------
+_scratch/
