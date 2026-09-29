@@ -75,3 +75,6 @@ desktop.ini
 # Local scratch (not part of the project)
 # ---------------------------------------------------------------------------
 _scratch/
+
+# Static GitHub Pages build output
+_site/
