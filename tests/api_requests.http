@@ -1,0 +1,94 @@
+# Test the Cover Type API (PyCharm HTTP Client)
+# Start the server first:  uvicorn backend.main:app --reload
+
+### Health
+GET http://127.0.0.1:8000/health
+Accept: application/json
+
+### Model info (architecture, classes, feature stats, test metrics)
+GET http://127.0.0.1:8000/model-info
+Accept: application/json
+
+### One representative test-set row per class
+GET http://127.0.0.1:8000/examples
+Accept: application/json
+
+### Predict — full 54-feature payload (first dataset row, true label: Aspen)
+POST http://127.0.0.1:8000/predict
+Content-Type: application/json
+
+{
+  "Elevation": 2596,
+  "Aspect": 51,
+  "Slope": 3,
+  "Horizontal_Distance_To_Hydrology": 258,
+  "Vertical_Distance_To_Hydrology": 0,
+  "Horizontal_Distance_To_Roadways": 510,
+  "Hillshade_9am": 221,
+  "Hillshade_Noon": 232,
+  "Hillshade_3pm": 148,
+  "Horizontal_Distance_To_Fire_Points": 6279,
+  "Wilderness_Area_0": 1, "Wilderness_Area_1": 0, "Wilderness_Area_2": 0, "Wilderness_Area_3": 0,
+  "Soil_Type_0": 0, "Soil_Type_1": 0, "Soil_Type_2": 0, "Soil_Type_3": 0, "Soil_Type_4": 0,
+  "Soil_Type_5": 0, "Soil_Type_6": 0, "Soil_Type_7": 0, "Soil_Type_8": 0, "Soil_Type_9": 0,
+  "Soil_Type_10": 0, "Soil_Type_11": 0, "Soil_Type_12": 0, "Soil_Type_13": 0, "Soil_Type_14": 0,
+  "Soil_Type_15": 0, "Soil_Type_16": 0, "Soil_Type_17": 0, "Soil_Type_18": 0, "Soil_Type_19": 0,
+  "Soil_Type_20": 0, "Soil_Type_21": 0, "Soil_Type_22": 0, "Soil_Type_23": 0, "Soil_Type_24": 0,
+  "Soil_Type_25": 0, "Soil_Type_26": 0, "Soil_Type_27": 0, "Soil_Type_28": 1, "Soil_Type_29": 0,
+  "Soil_Type_30": 0, "Soil_Type_31": 0, "Soil_Type_32": 0, "Soil_Type_33": 0, "Soil_Type_34": 0,
+  "Soil_Type_35": 0, "Soil_Type_36": 0, "Soil_Type_37": 0, "Soil_Type_38": 0, "Soil_Type_39": 0
+}
+
+### Predict — sparse payload (one-hot fields default to 0)
+POST http://127.0.0.1:8000/predict
+Content-Type: application/json
+
+{
+  "Elevation": 3350,
+  "Aspect": 110,
+  "Slope": 16,
+  "Horizontal_Distance_To_Hydrology": 330,
+  "Vertical_Distance_To_Hydrology": 60,
+  "Horizontal_Distance_To_Roadways": 2500,
+  "Hillshade_9am": 225,
+  "Hillshade_Noon": 220,
+  "Hillshade_3pm": 128,
+  "Horizontal_Distance_To_Fire_Points": 2000,
+  "Wilderness_Area_2": 1,
+  "Soil_Type_37": 1
+}
+
+### Batch prediction
+POST http://127.0.0.1:8000/predict/batch
+Content-Type: application/json
+
+{
+  "instances": [
+    {
+      "Elevation": 2596, "Aspect": 51, "Slope": 3,
+      "Horizontal_Distance_To_Hydrology": 258, "Vertical_Distance_To_Hydrology": 0,
+      "Horizontal_Distance_To_Roadways": 510, "Hillshade_9am": 221, "Hillshade_Noon": 232,
+      "Hillshade_3pm": 148, "Horizontal_Distance_To_Fire_Points": 6279,
+      "Wilderness_Area_0": 1, "Soil_Type_28": 1
+    },
+    {
+      "Elevation": 3350, "Aspect": 110, "Slope": 16,
+      "Horizontal_Distance_To_Hydrology": 330, "Vertical_Distance_To_Hydrology": 60,
+      "Horizontal_Distance_To_Roadways": 2500, "Hillshade_9am": 225, "Hillshade_Noon": 220,
+      "Hillshade_3pm": 128, "Horizontal_Distance_To_Fire_Points": 2000,
+      "Wilderness_Area_2": 1, "Soil_Type_37": 1
+    }
+  ]
+}
+
+### Validation error — two soil types active (expect 422)
+POST http://127.0.0.1:8000/predict
+Content-Type: application/json
+
+{
+  "Elevation": 2596, "Aspect": 51, "Slope": 3,
+  "Horizontal_Distance_To_Hydrology": 258, "Vertical_Distance_To_Hydrology": 0,
+  "Horizontal_Distance_To_Roadways": 510, "Hillshade_9am": 221, "Hillshade_Noon": 232,
+  "Hillshade_3pm": 148, "Horizontal_Distance_To_Fire_Points": 6279,
+  "Wilderness_Area_0": 1, "Soil_Type_28": 1, "Soil_Type_3": 1
+}
