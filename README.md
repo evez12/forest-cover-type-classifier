@@ -5,12 +5,15 @@
 **End-to-end deep learning system that predicts the forest cover type of a 30 m × 30 m land cell from cartographic data — from PyTorch training to a production-style FastAPI service and an interactive web UI.**
 
 [![CI](https://github.com/evez12/forest-cover-type-classifier/actions/workflows/ci.yml/badge.svg)](https://github.com/evez12/forest-cover-type-classifier/actions/workflows/ci.yml)
+[![Live demo](https://img.shields.io/badge/%F0%9F%A4%97%20Live%20demo-Hugging%20Face%20Spaces-FFD21E)](https://huggingface.co/spaces/evez12/forest-cover-type-classifier)
 [![Python](https://img.shields.io/badge/Python-3.12%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.11-EE4C2C?logo=pytorch&logoColor=white)](https://pytorch.org/)
 [![scikit-learn](https://img.shields.io/badge/scikit--learn-1.9-F7931E?logo=scikitlearn&logoColor=white)](https://scikit-learn.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.141-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)](Dockerfile)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+### [▶ Try the live demo](https://evez12-forest-cover-type-classifier.hf.space)
 
 **Test accuracy 95.4 %** · **Macro F1 0.922** · **MCC 0.926** · 58,102 held-out samples
 
@@ -29,6 +32,7 @@
 - [Model](#model)
 - [Project Structure](#project-structure)
 - [Getting Started](#getting-started)
+- [Deployment](#deployment)
 - [API Endpoints](#api-endpoints)
 - [Screenshots & Usage](#screenshots--usage)
 - [Testing](#testing)
@@ -216,7 +220,11 @@ forest-cover-type-classifier/
 │   ├── test_model.py                # Model unit tests
 │   └── api_requests.http            # Manual requests (PyCharm / VS Code REST Client)
 ├── docs/screenshots/                # README images
-├── .github/workflows/ci.yml         # Lint + tests + Docker build
+├── .github/workflows/
+│   ├── ci.yml                       # Lint + tests + Docker build
+│   └── deploy.yml                   # Auto-deploy to Hugging Face Spaces
+├── scripts/
+│   └── deploy_hf_space.py           # Builds the Space bundle and uploads it
 ├── train_and_export.py              # Training CLI → artifacts/
 ├── Dockerfile                       # CPU inference image
 ├── pyproject.toml                   # Project metadata, pytest & ruff config
@@ -313,6 +321,33 @@ All settings are optional environment variables:
 | `COVTYPE_DEVICE` | `cpu` | `cpu`, `cuda`, or `auto` |
 | `COVTYPE_CORS_ORIGINS` | `*` | Comma-separated list of allowed origins |
 | `COVTYPE_MAX_BATCH_SIZE` | `10000` | Maximum instances per `/predict/batch` request |
+
+---
+
+## Deployment
+
+The app is deployed for free on **[Hugging Face Spaces](https://huggingface.co/spaces/evez12/forest-cover-type-classifier)** (Docker SDK, CPU tier) and redeployed automatically on every push to `main`:
+
+```
+git push → CI (lint + tests + Docker build) → deploy.yml → scripts/deploy_hf_space.py → Space rebuilds the Docker image
+```
+
+| URL | |
+|---|---|
+| <https://evez12-forest-cover-type-classifier.hf.space/> | Web UI |
+| <https://evez12-forest-cover-type-classifier.hf.space/docs> | Swagger UI |
+| <https://huggingface.co/spaces/evez12/forest-cover-type-classifier> | Space page |
+
+**One-time setup (fork / own account)**
+
+1. Create a free account at [huggingface.co](https://huggingface.co/join).
+2. Create an access token with **Write** permission: *Settings → Access Tokens*.
+3. In the GitHub repo: *Settings → Secrets and variables → Actions → New repository secret* → name `HF_TOKEN`.
+4. Push to `main` or run **Deploy to Hugging Face Spaces** from the *Actions* tab. The Space `<hf-username>/forest-cover-type-classifier` is created on the first run (override with the `HF_SPACE_ID` repository variable).
+
+Manual deploy: `HF_TOKEN=hf_xxx python scripts/deploy_hf_space.py` (`--dry-run` lists the bundle without uploading).
+
+> Free Spaces sleep after 48 h without traffic; the first visit afterwards takes ~1 minute to wake up.
 
 ---
 
@@ -419,7 +454,7 @@ The test suite runs the real FastAPI app (including its lifespan) against the co
 - API-key authentication and rate limiting for public deployments.
 
 **Engineering**
-- Continuous delivery: push the Docker image to GHCR and deploy to a cloud runtime (Cloud Run, Azure Container Apps, Render).
+- Publish the Docker image to GHCR and add a staging environment before the production Space.
 - Type checking with `mypy` and pre-commit hooks.
 - SHAP-based per-prediction explanations surfaced in the UI.
 
