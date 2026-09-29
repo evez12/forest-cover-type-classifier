@@ -5,7 +5,7 @@
 **End-to-end deep learning system that predicts the forest cover type of a 30 m × 30 m land cell from cartographic data — from PyTorch training to a production-style FastAPI service and an interactive web UI.**
 
 [![CI](https://github.com/evez12/forest-cover-type-classifier/actions/workflows/ci.yml/badge.svg)](https://github.com/evez12/forest-cover-type-classifier/actions/workflows/ci.yml)
-[![Live demo](https://img.shields.io/badge/%F0%9F%A4%97%20Live%20demo-Hugging%20Face%20Spaces-FFD21E)](https://huggingface.co/spaces/evez12/forest-cover-type-classifier)
+[![Live demo](https://img.shields.io/badge/%F0%9F%A4%97%20Live%20demo-Hugging%20Face%20Spaces-FFD21E)](https://huggingface.co/spaces/avaz11/forest-cover-type-classifier)
 [![Python](https://img.shields.io/badge/Python-3.12%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.11-EE4C2C?logo=pytorch&logoColor=white)](https://pytorch.org/)
 [![scikit-learn](https://img.shields.io/badge/scikit--learn-1.9-F7931E?logo=scikitlearn&logoColor=white)](https://scikit-learn.org/)
@@ -13,7 +13,7 @@
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)](Dockerfile)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-### [▶ Try the live demo](https://evez12-forest-cover-type-classifier.hf.space)
+### [▶ Try the live demo](https://avaz11-forest-cover-type-classifier.hf.space)
 
 **Test accuracy 95.4 %** · **Macro F1 0.922** · **MCC 0.926** · 58,102 held-out samples
 
@@ -326,7 +326,7 @@ All settings are optional environment variables:
 
 ## Deployment
 
-The app is deployed for free on **[Hugging Face Spaces](https://huggingface.co/spaces/evez12/forest-cover-type-classifier)** (Docker SDK, CPU tier) and redeployed automatically on every push to `main`:
+The app is deployed for free on **[Hugging Face Spaces](https://huggingface.co/spaces/avaz11/forest-cover-type-classifier)** (Docker SDK, CPU tier) and redeployed automatically on every push to `main`:
 
 ```
 git push → CI (lint + tests + Docker build) → deploy.yml → scripts/deploy_hf_space.py → Space rebuilds the Docker image
@@ -334,9 +334,9 @@ git push → CI (lint + tests + Docker build) → deploy.yml → scripts/deploy_
 
 | URL | |
 |---|---|
-| <https://evez12-forest-cover-type-classifier.hf.space/> | Web UI |
-| <https://evez12-forest-cover-type-classifier.hf.space/docs> | Swagger UI |
-| <https://huggingface.co/spaces/evez12/forest-cover-type-classifier> | Space page |
+| <https://avaz11-forest-cover-type-classifier.hf.space/> | Web UI |
+| <https://avaz11-forest-cover-type-classifier.hf.space/docs> | Swagger UI |
+| <https://huggingface.co/spaces/avaz11/forest-cover-type-classifier> | Space page |
 
 **One-time setup (fork / own account)**
 
