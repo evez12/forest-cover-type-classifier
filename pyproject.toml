@@ -15,6 +15,7 @@ addopts = "-ra"
 [tool.ruff]
 line-length = 120
 target-version = "py312"
+extend-exclude = ["notebooks"]  # exploratory code, not linted in CI
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
