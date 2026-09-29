@@ -1,0 +1,11 @@
+# Minimal runtime dependencies for the inference API (no training / notebook extras).
+# Install a CPU build of PyTorch first to keep the footprint small:
+#   pip install torch==2.11.0 --index-url https://download.pytorch.org/whl/cpu
+torch==2.11.0
+numpy==2.5.3
+pandas==3.0.6
+scikit-learn==1.9.1   # must match the version that pickled preprocessor.joblib
+joblib==1.6.0
+fastapi==0.141.1
+uvicorn[standard]==0.54.0
+pydantic==2.13.5
