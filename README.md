@@ -5,7 +5,7 @@
 **End-to-end deep learning system that predicts the forest cover type of a 30 m × 30 m land cell from cartographic data — from PyTorch training to a production-style FastAPI service and an interactive web UI.**
 
 [![CI](https://github.com/evez12/forest-cover-type-classifier/actions/workflows/ci.yml/badge.svg)](https://github.com/evez12/forest-cover-type-classifier/actions/workflows/ci.yml)
-[![Live demo](https://img.shields.io/badge/%F0%9F%A4%97%20Live%20demo-Hugging%20Face%20Spaces-FFD21E)](https://huggingface.co/spaces/avaz11/forest-cover-type-classifier)
+[![Live demo](https://img.shields.io/badge/Live%20demo-GitHub%20Pages-2ea44f?logo=github)](https://evez12.github.io/forest-cover-type-classifier/)
 [![Python](https://img.shields.io/badge/Python-3.12%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.11-EE4C2C?logo=pytorch&logoColor=white)](https://pytorch.org/)
 [![scikit-learn](https://img.shields.io/badge/scikit--learn-1.9-F7931E?logo=scikitlearn&logoColor=white)](https://scikit-learn.org/)
@@ -13,7 +13,7 @@
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)](Dockerfile)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-### [▶ Try the live demo](https://avaz11-forest-cover-type-classifier.hf.space)
+### [▶ Try the live demo](https://evez12.github.io/forest-cover-type-classifier/)
 
 **Test accuracy 95.4 %** · **Macro F1 0.922** · **MCC 0.926** · 58,102 held-out samples
 
@@ -207,7 +207,8 @@ forest-cover-type-classifier/
 ├── frontend/                        # Framework-free web UI (served by FastAPI)
 │   ├── index.html
 │   ├── styles.css
-│   └── app.js
+│   ├── app.js
+│   └── static-api.js                # In-browser inference (GitHub Pages build only)
 ├── artifacts/                       # Exported inference artifacts (versioned, ~260 KB)
 │   ├── covtype_model.pth            # Model state_dict
 │   ├── preprocessor.joblib          # Fitted ColumnTransformer
@@ -218,13 +219,14 @@ forest-cover-type-classifier/
 │   ├── conftest.py                  # TestClient fixture (runs the app lifespan)
 │   ├── test_api.py                  # API integration tests
 │   ├── test_model.py                # Model unit tests
+│   ├── test_static_site.py          # Static build + parity tests
 │   └── api_requests.http            # Manual requests (PyCharm / VS Code REST Client)
 ├── docs/screenshots/                # README images
 ├── .github/workflows/
 │   ├── ci.yml                       # Lint + tests + Docker build
-│   └── deploy.yml                   # Auto-deploy to Hugging Face Spaces
+│   └── pages.yml                    # Static in-browser demo → GitHub Pages
 ├── scripts/
-│   └── deploy_hf_space.py           # Builds the Space bundle and uploads it
+│   └── build_static_site.py         # BatchNorm folding + static site export
 ├── train_and_export.py              # Training CLI → artifacts/
 ├── Dockerfile                       # CPU inference image
 ├── pyproject.toml                   # Project metadata, pytest & ruff config
@@ -326,28 +328,36 @@ All settings are optional environment variables:
 
 ## Deployment
 
-The app is deployed for free on **[Hugging Face Spaces](https://huggingface.co/spaces/avaz11/forest-cover-type-classifier)** (Docker SDK, CPU tier) and redeployed automatically on every push to `main`:
+### Live demo — GitHub Pages (free, serverless)
+
+**https://evez12.github.io/forest-cover-type-classifier/**
+
+The public demo runs **entirely in the visitor's browser** — no server, no cold starts, zero hosting cost:
 
 ```
-git push → CI (lint + tests + Docker build) → deploy.yml → scripts/deploy_hf_space.py → Space rebuilds the Docker image
+git push → CI (lint + tests + Docker build) → pages.yml → build_static_site.py → GitHub Pages
 ```
 
-| URL | |
-|---|---|
-| <https://avaz11-forest-cover-type-classifier.hf.space/> | Web UI |
-| <https://avaz11-forest-cover-type-classifier.hf.space/docs> | Swagger UI |
-| <https://huggingface.co/spaces/avaz11/forest-cover-type-classifier> | Space page |
+`scripts/build_static_site.py` turns the trained model into a static site:
 
-**One-time setup (fork / own account)**
+1. Loads the production artifacts through the same `CoverTypePredictor` the API uses.
+2. **Folds every eval-mode `BatchNorm1d` into the preceding `Linear` layer** (`W' = diag(s)·W`, `b' = s·b + β − μ·s`, `s = γ / √(σ² + ε)`), reducing the network to 6 affine layers + ReLU.
+3. Exports the weights as base64 `float32` (~270 KB), the `StandardScaler` statistics, schema bounds and the `/model-info` + `/examples` responses.
+4. **Verifies parity**: the folded network must match the PyTorch pipeline on every preset (max |Δp| ≈ 1e-7), otherwise the build fails.
 
-1. Create a free account at [huggingface.co](https://huggingface.co/join).
-2. Create an access token with **Write** permission: *Settings → Access Tokens*.
-3. In the GitHub repo: *Settings → Secrets and variables → Actions → New repository secret* → name `HF_TOKEN`.
-4. Push to `main` or run **Deploy to Hugging Face Spaces** from the *Actions* tab. The Space `<hf-username>/forest-cover-type-classifier` is created on the first run (override with the `HF_SPACE_ID` repository variable).
+In the browser, `frontend/static-api.js` intercepts the UI's `fetch()` calls to `/health`, `/model-info`, `/examples`, `/predict` and `/predict/batch` and answers them locally — same request/response contract and validation (`422` on invalid one-hot groups) as the FastAPI service, so `app.js` runs unchanged in both modes.
 
-Manual deploy: `HF_TOKEN=hf_xxx python scripts/deploy_hf_space.py` (`--dry-run` lists the bundle without uploading).
+**Enable it on a fork:** *Settings → Pages → Build and deployment → Source: **GitHub Actions***, then push to `main` or run **Deploy to GitHub Pages** from the *Actions* tab.
 
-> Free Spaces sleep after 48 h without traffic; the first visit afterwards takes ~1 minute to wake up.
+Build locally: `python scripts/build_static_site.py --out _site && python -m http.server -d _site 8080`
+
+### Full API — Docker (self-hosted)
+
+The FastAPI service (Swagger UI, batch endpoint, server-side inference) ships as a Docker image and runs on any container platform:
+
+```bash
+docker build -t covtype-api . && docker run --rm -p 8000:8000 covtype-api
+```
 
 ---
 
@@ -430,7 +440,7 @@ Ready-made requests for every endpoint, including failure cases, are in [`tests/
 ## Testing
 
 ```bash
-pytest          # 15 tests: API integration + model unit tests
+pytest          # 17 tests: API integration, model unit tests, static build parity
 ruff check .    # linting
 ```
 
@@ -454,7 +464,8 @@ The test suite runs the real FastAPI app (including its lifespan) against the co
 - API-key authentication and rate limiting for public deployments.
 
 **Engineering**
-- Publish the Docker image to GHCR and add a staging environment before the production Space.
+- Publish the Docker image to GHCR and deploy the full API to a container platform.
+- Run the static demo with ONNX Runtime Web / WebGPU for larger models.
 - Type checking with `mypy` and pre-commit hooks.
 - SHAP-based per-prediction explanations surfaced in the UI.
 
